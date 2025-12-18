@@ -5,11 +5,11 @@ from PIL import Image
 st.set_page_config(page_title="Deteksi Penyakit Ikan Mas Koki", page_icon="🐠")
 
 st.title("Deteksi Penyakit Ikan Mas Koki")
-st.write("Upload foto ikan mas koki Anda, dan AI akan mendeteksi apakah ada penyakit (White Spot, Dropsy, dll).")
+st.write("Upload foto ikan mas koki Anda, dan AI akan mendeteksi apakah ada penyakit pada ikan Anda.")
 
 @st.cache_resource
 def load_model():
-    model = YOLO('best_s.pt') 
+    model = YOLO('best.pt') 
     return model
 
 try:
@@ -32,28 +32,21 @@ if uploaded_file is not None:
         with st.spinner('Sedang menganalisa...'):
             results = model.predict(image, conf=0.25)
             
-            if len(results[0].boxes) > 0:
-                best_box_index = results[0].boxes.conf.argmax().item()
-                
+            res_plotted = results[0].plot() 
             
-                results[0].boxes = results[0].boxes[[best_box_index]]
-                
-                res_plotted = results[0].plot() 
-                
-                with col2:
-                    st.subheader("Hasil Deteksi")
-                    st.image(res_plotted, channels="BGR", use_container_width=True) 
-                
-                st.success("Analisa Selesai")
-                
-                with st.expander("Lihat Rincian Deteksi", expanded=True):
-                    box = results[0].boxes[0] 
-                    cls = int(box.cls[0])
-                    conf = float(box.conf[0])
-                    name = model.names[cls]
-                    
-                    st.info(f"Penyakit Terdeteksi: **{name}**")
-                    st.write(f"Tingkat Kepercayaan AI: **{conf:.2f}**")
-                    
+            with col2:
+                st.subheader("Hasil Deteksi")
+                st.image(res_plotted, channels="BGR", use_container_width=True) 
+            
+            st.success("Analisa Selesai!")
+            
+            boxes = results[0].boxes
+            if len(boxes) > 0:
+                with st.expander("Lihat Rincian Deteksi"):
+                    for box in boxes:
+                        cls = int(box.cls[0])
+                        conf = float(box.conf[0])
+                        name = model.names[cls]
+                        st.write(f"- Terdeteksi: **{name}** (Kepercayaan: {conf:.2f})")
             else:
                 st.warning("Tidak ada penyakit atau ikan yang terdeteksi.")
