@@ -9,7 +9,7 @@ st.write("Upload foto ikan mas koki Anda, dan AI akan mendeteksi apakah ada peny
 
 @st.cache_resource
 def load_model():
-    model = YOLO('best.pt') 
+    model = YOLO('best_s.pt') 
     return model
 
 try:
